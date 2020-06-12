@@ -88,14 +88,16 @@ ui <- dashboardPage(
                        # selectInput("location_region", "Region:",
                        #             Regionlist,
                        #             selected = "Lisboa e Vale do Tejo", selectize = TRUE),
-                       plotOutput("newcasesplot_region", height = "600px")
+                       plotOutput("newcasesplot_region", height = "600px"),
+                       "Source: https://github.com/dssg-pt/covid19pt-data"
                      ),
                      tabPanel(
                        "Council data",
                        selectInput("location_council", "Council:",
                                    Councillist,
                                    selected = "Lisboa", selectize = TRUE),
-                       plotOutput("newcasesplot_council")
+                       plotOutput("newcasesplot_council"),
+                       "Source: https://github.com/dssg-pt/covid19pt-data"
                      )
               )
             )
