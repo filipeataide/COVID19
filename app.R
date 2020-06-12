@@ -14,18 +14,21 @@ fileCouncils <- getURL("https://raw.githubusercontent.com/dssg-pt/covid19pt-data
 fileRegions <- getURL("https://raw.githubusercontent.com/dssg-pt/covid19pt-data/master/data.csv")
 
 Council_Cases <- read.csv(text=fileCouncils)
-
 Councillist=colnames(Council_Cases)
 Councillist=Councillist[2:length(Councillist)]
 Councillist=str_replace_all(Councillist, "\\.", " ")
 Councillist=str_to_title(Councillist)
 colnames(Council_Cases)=c("data",Councillist)
+todayCouncil=Council_Cases$data[length(Council_Cases$data)]
+todayCouncil=as.Date(todayCouncil,"%d-%m-%y")
 
 Region_Cases <- read.csv(text=fileRegions)
 Region_Cases = Region_Cases[,c("data","confirmados_arsnorte","confirmados_arscentro","confirmados_arslvt","confirmados_arsalentejo","confirmados_arsalgarve","confirmados_acores","confirmados_madeira")]
 Regionlist = c("Norte","Centro","Lisboa e Vale do Tejo","Alentejo","Algarve","Acores","Madeira")
 colnames(Region_Cases)=c("data",Regionlist)
-
+todayRegion=Region_Cases$data[length(Region_Cases$data)]
+todayRegion=as.Date(todayRegion,"%d-%m-%y")
+  
 # Multiple plot function
 #
 # ggplot objects can be passed in ..., or to plotlist (as a list of ggplot objects)
@@ -88,16 +91,18 @@ ui <- dashboardPage(
                        # selectInput("location_region", "Region:",
                        #             Regionlist,
                        #             selected = "Lisboa e Vale do Tejo", selectize = TRUE),
+                       "Daily cases below 10 - green; Daily cases below 20 or below 20% of peak - yellow; anything else - red. Inspiration from @yaneerbaryam",
                        plotOutput("newcasesplot_region", height = "600px"),
-                       "Source: https://github.com/dssg-pt/covid19pt-data"
+                       paste0("Source: https://github.com/dssg-pt/covid19pt-data (last update: ",todayRegion,")")
                      ),
                      tabPanel(
                        "Council data",
                        selectInput("location_council", "Council:",
                                    Councillist,
                                    selected = "Lisboa", selectize = TRUE),
+                       "Daily cases below 5 - green; Daily cases below 10 or below 20% of peak - yellow; anything else - red. Inspiration from @yaneerbaryam",
                        plotOutput("newcasesplot_council"),
-                       "Source: https://github.com/dssg-pt/covid19pt-data"
+                       paste0("Source: https://github.com/dssg-pt/covid19pt-data (last update: ",todayCouncil,")")
                      )
               )
             )
@@ -130,16 +135,24 @@ server <- function(input, output) {
     }
     
     plotdata_council=data.frame(date,smooth_newcases,newcases)
+    colour = if(smooth_newcases[length(smooth_newcases)] < 5){
+      "#52854C"
+    } else if(smooth_newcases[length(smooth_newcases)]/max(smooth_newcases)<0.2 || smooth_newcases[length(smooth_newcases)] < 10){
+      "#E7B800"
+    } else {
+      "#FC4E07"
+    }
     
     output$newcasesplot_council <- renderPlot({
       p <- ggplot(plotdata_council,aes(x=date)) +
-        geom_line(aes(y=smooth_newcases), size = 2) +
-        geom_point(aes(y=newcases), size = 3) +
-        ggtitle(paste0("New daily cases for ",location,"\nTotal cases: ",TotalInfected[length(TotalInfected)])) + 
-        xlab ("") + ylab("Number of daily cases") + ylim(0, max(20,max(newcases,smooth_newcases))) + 
+        geom_line(aes(y=smooth_newcases), size = 2, color=colour) +
+        # geom_point(aes(y=newcases), size = 3) +
+        ggtitle(paste0(location," (total cases: ",TotalInfected[length(TotalInfected)],")")) +
+        xlab ("") + ylab("Daily cases") + 
         theme(axis.text=element_text(size=14,face="bold"),
               axis.title=element_text(size=16,face="bold"),
-              aspect.ratio = 1/1.618)
+              aspect.ratio = 1/1.618,
+              plot.title = element_text(size = 20, face = "bold"))
       p
     })
   })
@@ -185,11 +198,12 @@ server <- function(input, output) {
     p <- ggplot(plotdata_region,aes(x=date)) +
       geom_line(aes(y=smooth_newcases), size = 2, color=colour) +
       # geom_point(aes(y=newcases), size = 3, color=colour) +
-      ggtitle(paste0("New daily cases for ",k,"\nTotal cases: ",TotalInfected[length(TotalInfected)])) +
-      xlab ("") + ylab("Number of daily cases") +
+      ggtitle(paste0(location," (total cases: ",TotalInfected[length(TotalInfected)],")")) +
+      xlab ("") + ylab("Daily cases") +
       theme(axis.text=element_text(size=14,face="bold"),
             axis.title=element_text(size=16,face="bold"),
-            aspect.ratio = 1/1.618)
+            aspect.ratio = 1/1.618,
+            plot.title = element_text(size = 20, face = "bold"))
     if (k == "Norte"){
       p1 = p
     } else if (k == "Centro"){
