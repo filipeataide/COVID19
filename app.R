@@ -88,21 +88,18 @@ ui <- dashboardPage(
                      id="tab1",
                      tabPanel(
                        "Region data",
-                       # selectInput("location_region", "Region:",
-                       #             Regionlist,
-                       #             selected = "Lisboa e Vale do Tejo", selectize = TRUE),
-                       "Daily cases below 10 - green; Daily cases below 20 or below 20% of peak - yellow; anything else - red. Inspiration from @yaneerbaryam",
+                       htmlOutput("legend1"),
                        plotOutput("newcasesplot_region", height = "600px"),
-                       paste0("Source: https://github.com/dssg-pt/covid19pt-data (last update: ",todayRegion,")")
+                       paste0("Source: https://github.com/dssg-pt/covid19pt-data (last update: ",todayRegion,")\n Inspiration from @yaneerbaryam")
                      ),
                      tabPanel(
                        "Council data",
                        selectInput("location_council", "Council:",
                                    Councillist,
                                    selected = "Lisboa", selectize = TRUE),
-                       "Daily cases below 5 - green; Daily cases below 10 or below 20% of peak - yellow; anything else - red. Inspiration from @yaneerbaryam",
+                       "Daily cases below 5 - green; Daily cases below 10 or below 20% of peak - yellow; anything else - red",
                        plotOutput("newcasesplot_council"),
-                       paste0("Source: https://github.com/dssg-pt/covid19pt-data (last update: ",todayCouncil,")")
+                       paste0("Source: https://github.com/dssg-pt/covid19pt-data (last update: ",todayCouncil,")\n Inspiration from @yaneerbaryam")
                      )
               )
             )
@@ -111,6 +108,9 @@ ui <- dashboardPage(
 )
 
 server <- function(input, output) {
+  
+  output$legend1 = renderText({
+    paste0("Daily cases below 10 - green;","\nDaily cases below 20 or below 20% of peak - yellow;","\n anything else - red")})
   
   ####Councils plot####
   observeEvent(input$location_council,{
@@ -219,19 +219,9 @@ server <- function(input, output) {
     } else if (k == "Madeira"){
       p7 = p
     }
-    # p
-    # nam=paste("p",k,sep = "")
-    # assign(nam,p)
-    
   }
   output$newcasesplot_region <- renderPlot({
-    # p1 = p1 + ylim(0, maxnewcases)
-    # p2 = p2 + ylim(0, maxnewcases)
-    # p3 = p3 + ylim(0, maxnewcases)
-    # p4 = p4 + ylim(0, maxnewcases)
-    # p5 = p5 + ylim(0, maxnewcases)
-    # p6 = p6 + ylim(0, maxnewcases)
-    # p7 = p7 + ylim(0, maxnewcases)
+
     
     multiplot(p1, p2, p3, p4, p5, p6, p7, cols=4)
   })
